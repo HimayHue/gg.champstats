@@ -15,26 +15,23 @@ function ProfileSearchBar() {
    };
 
    // Example: Radec Himay#NA1 -> radec%20himay/NA1
-   const transformSummonerName = (summonerName: string): { gameName: string; tagLine: string } => {
-      // 
-      if (!summonerName.includes('#')) {
-         summonerName += '#NA1';
+   const transformSummonerName = (input: string): { gameName: string; tagLine: string } => {
+      let value = input.trim();
+
+      if (!value.includes('#')) {
+         value += '#NA1';
       }
 
-      let splitName = summonerName.split('#');
-      let gameName = splitName[0];
-      let tagLine = splitName[1];
-
-      gameName = gameName.toLowerCase();
-      gameName = gameName.replace(/ /g, '%20');
-
-      return { gameName, tagLine };
+      const [gameName, tagLine] = value.split('#');
+      return { gameName: gameName.trim(), tagLine: tagLine.trim() };
    };
 
    const searchSummonerName = () => {
       const { gameName, tagLine } = transformSummonerName(summonerName);
+      const regionSegment = "na";
+      const encodedName = encodeURIComponent(gameName);
 
-      window.location.href = `/lol/${gameName}-${tagLine}`;
+      window.location.href = `/lol/${regionSegment}/${encodedName}-${tagLine}`;
       setSummonerName("");
    };
 
@@ -42,7 +39,7 @@ function ProfileSearchBar() {
       <div className="header-middle">
 
          <form
-            action={searchSummonerName}
+            onSubmit={(e) => { e.preventDefault(); searchSummonerName(); }}
             className="header-search-container gap-x-2"
          >
             <input
