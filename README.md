@@ -102,6 +102,29 @@ style(ui): adjust champion card spacing
 
 ---
 
+## 🌿 Branch Naming
+
+Use the format:
+
+type/short-description
+
+Examples:
+
+feature/profile-search  
+feature/live-match  
+fix/api-timeout  
+refactor/api-client  
+chore/update-dependencies  
+
+Guidelines:
+
+- Use **lowercase**
+- Use **kebab-case** (hyphens)
+- Keep names **short and descriptive**
+
+Do not commit directly to `Production`.  
+Create a branch → open a pull request → merge into `main`.
+
 # 📙 Useful Commands
 
 ### Run the Development Server
