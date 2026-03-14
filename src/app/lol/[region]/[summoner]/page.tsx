@@ -1,4 +1,4 @@
-import { toTitleCase } from "@/utils/formatApiData/format";
+import { toTitleCase } from "@/utils/format";
 interface PageProps {
    params: Promise<{
       summoner: string;

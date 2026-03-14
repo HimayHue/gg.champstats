@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-import SummonerProfileHeader from "@/components/SummonerProfile/SummonerProfileHeader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +20,6 @@ export default function RootLayout({
 
       <body className={`${inter.className} min-h-screen`}>
         <div className="h-16">
-          <SummonerProfileHeader />
         </div>
         {children}
       </body>
