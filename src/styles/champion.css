@@ -1,0 +1,56 @@
+.champion-info-header{
+    font-size: 30px;
+}
+.champion-header{
+    text-align: center;
+}
+.champion-header-mini{
+    font-size: 12px;
+}
+.champ-name-icon{
+    display: inline;
+    width: 80px;
+    height: 70px;
+    padding: 20px 8px;
+    
+}
+.champ-name{
+    font-size: 14px;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden; /* Hides the overflowing content */
+    text-overflow: ellipsis; /* Adds an ellipsis (...) when text overflows */
+
+}
+.champion-container{
+    width: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+.champion-image{
+    padding: 2px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+}
+.header{
+    text-align: center;
+    padding: 10px;
+    
+}
+.search-button{
+    margin-left: 5px;
+    border: 1px solid white;
+    border-radius: 2px;
+    padding: 2px 4px;
+}
+.search-input-box{
+    border-radius: 2px;
+    padding: 2px;
+}
