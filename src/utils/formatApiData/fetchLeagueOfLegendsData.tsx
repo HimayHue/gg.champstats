@@ -1,60 +1,54 @@
 import { AccountInformation, MatchDto, SummonerProfile, SummonerSpell, SummonerSpells } from "@/types/LeagueOfLegends";
 
-const LeagueAPIRoute = `/api/riot/LeagueOfLegends/`
+const LeagueAPIRoute = `https://americas.api.riotgames.com/riot`
 
 
-// Fetches the PUUID using the game name and tag line
-export async function fetchPUUID(gameName: string, tagLine: string): Promise<any> {
+/**
+ * Fetches account details (PUUID, gameName, and tagLine) from the Riot Games API
+ * using a player's Riot ID.
+ * @example
+ * const account = await fetchAccountByRiotID('Radec Himay', 'NA1');
+ * @param {string} riotName - The player's in-game name (e.g., "Radec Himay").
+ * @param {string} riotTag - The player's tag line without the '#' (e.g., "NA1").
+ * @returns {Promise<AccountInformation>} An object containing the player's PUUID and verified ID.
+ * @throws {Error} If the RIOT_API_KEY is missing from environment variables.
+ * @throws {Error} If the player is not found (404).
+ * @throws {Error} If the API rate limit is exceeded (429).
+ * @throws {Error} For any other non-OK response from the Riot API.
+ */
+export async function fetchAccountByRiotID(
+   riotName: string,
+   riotTag: string
+): Promise<AccountInformation> {
+
+   const apiKey = process.env.RIOT_API_KEY;
+   if (!apiKey) throw new Error("RIOT_API_KEY is not defined in environment variables.");
+
+   // TODO: Implement region swapping in the future. For now, we will default to the Americas endpoint for all requests.
+   const url = `${LeagueAPIRoute}/account/v1/accounts/by-riot-id/${riotName}/${riotTag}`;
+
    try {
-      const res = await fetch(`${LeagueAPIRoute}getAccountByRiotID?gameName=${gameName}&tagLine=${tagLine}`);
+      const response = await fetch(url, {
+         headers: {
+            "X-Riot-Token": apiKey,
+         },
+      });
 
-      if (res.status === 404) {
-         const errorData = await res.json();
-         throw new Error(`Invalid game name or tag line: ${errorData.error}`);
+      if (!response.ok) {
+         if (response.status === 404) throw new Error(`Player ${riotName}#${riotTag} not found.`);
+         if (response.status === 429) throw new Error("Rate limit exceeded. Please try again later.");
+         throw new Error(`Riot API responded with status: ${response.status}`);
       }
 
+      const data = await response.json();
 
-      const data = await res.json();
-      return data.puuid;
-   }
-   catch (error: any) {
-      console.error('Error fetching data:', error);
-      throw error;
-   }
-}
-
-
-// Fetches the SummonerProfile data using the PUUID
-export async function fetchSummonerProfile(puuid: string): Promise<SummonerProfile> {
-   try {
-      const response = await fetch(`${LeagueAPIRoute}getSummonerByPUUID?puuid=${puuid}`);
-
-      // If the PUUID is invalid
-      if (response.status === 404) {
-         const errorData = await response.json();
-         throw new Error(`Invalid PUUID: ${errorData.error}`);
-      }
-
-      const fetchedData = await response.json();
-      return fetchedData.data;
-   }
-   catch (error: any) {
-      console.error('Error fetching data:', error);
-      throw error;
-   }
-}
-
-
-// Fetches the AccountInformation using the game name and tag line
-export async function fetchAccountByRiotID(gameName: string, tagLine: string): Promise<AccountInformation> {
-   try {
-      const response = await fetch(`${LeagueAPIRoute}getAccountByRiotID?gameName=${gameName}&tagLine=${tagLine}`);
-
-      const fetchedData = await response.json();
-      return fetchedData.data;
-   }
-   catch (error: any) {
-      console.error('Error fetching account by Riot ID data:', error);
+      return {
+         puuid: data.puuid,
+         gameName: data.gameName,
+         tagLine: data.tagLine,
+      };
+   } catch (error) {
+      console.error(`[RiotAPI] fetchAccountByRiotID failed:`, error);
       throw error;
    }
 }
@@ -63,7 +57,7 @@ export async function fetchAccountByRiotID(gameName: string, tagLine: string): P
 // Fetches the match IDs of a player using their PUUID
 export async function fetchMatchIdsByPUUID(puuid: string): Promise<string[]> {
    try {
-      const response = await fetch(`${LeagueAPIRoute}getMatchesIdsByPUUID?puuid=${puuid}`);
+      const response = await fetch(`${LeagueAPIRoute}/match/v1/matches/by-puuid/${puuid}`);
 
       const fetchedData = await response.json();
       return fetchedData.data;
@@ -77,7 +71,7 @@ export async function fetchMatchIdsByPUUID(puuid: string): Promise<string[]> {
 // Fetches the match data using the match ID
 export async function fetchMatchByMatchID(matchId: string): Promise<MatchDto> {
    try {
-      const response = await fetch(`${LeagueAPIRoute}getMatchByMatchID?matchId=${matchId}`);
+      const response = await fetch(`${LeagueAPIRoute}/match/v1/matches/${matchId}`);
 
       if (response.status === 404) {
          const errorData = await response.json();
@@ -100,7 +94,7 @@ export async function fetchSummonerSpellsData(gameVersion: string): Promise<Summ
    console.log(`fetchSummmoerSpellsData: Fetching spells for version: ${version}`)
 
    try {
-      const response = await fetch(`${LeagueAPIRoute}getSummonerSpellsDataByVersion?Version=${version}`);
+      const response = await fetch(`${LeagueAPIRoute}/summoner/v1/spells?Version=${version}`);
       const fetchedData = await response.json();
 
       // console.log('fetchSummonerSpellsData: fetchedData:', JSON.stringify(fetchedData));
@@ -118,7 +112,7 @@ export async function fetchRunesData(gameVersion: string): Promise<any> {
    console.log(`fetchRunesData: Fetching runes for version: ${version}`)
 
    try {
-      const response = await fetch(`${LeagueAPIRoute}getRunesDataByVersion?Version=${version}`);
+      const response = await fetch(`${LeagueAPIRoute}/runes/v1/runes?Version=${version}`);
       const fetchedData = await response.json();
 
       // console.log('fetchRunesData: fetchedData:', JSON.stringify(fetchedData));
