@@ -25,25 +25,8 @@ export type AccountInformation = {
 }
 
 export type MatchDto = {
-   metaData: MetadataDto;
-   info: {
-      endOfGameResult: string;
-      gameCreation: number;
-      gameDuration: number;
-      gameEndTimestamp: number;
-      gameId: number;
-      gameMode: string;
-      gameName: string;
-      gameStartTimestamp: number;
-      gameType: string;
-      gameVersion: string;
-      mapId: number;
-      participants: ParticipantDto[];
-      platformId: string;
-      queueId: number;
-      teams: Team[];
-      tournamentCode: string;
-   }
+   metadata: MetadataDto;
+   info: infoDto;
 }
 
 export type MetadataDto = {
@@ -67,7 +50,7 @@ export type infoDto = {
    participants: ParticipantDto[];
    platformId: string;
    queueId: number;
-   teams: Team[];
+   teams: TeamDto[];
    tournamentCode: string;
 }
 
@@ -77,16 +60,14 @@ export type ParticipantDto = {
    assists: number;
    baronKills: number;
    bountyLevel: number;
-   championExperience: number;
+   champExperience: number;
    champLevel: number;
    championId: number;
    championName: string;
    commandPings: number;
    championTransform: number;
    consumablesPurchased: number;
-   challenges: {
-      //TODO: Create a type for challenges
-   }
+   challenges: ChallengesDto;
    damageDealtToBuildings: number;
    damageDealtToObjectives: number;
    damageDealtToTurrets: number;
@@ -104,7 +85,7 @@ export type ParticipantDto = {
    firstTowerKill: boolean;
    gameEndedInEarlySurrender: boolean;
    gameEndedInSurrender: boolean;
-   holdingPings: number;
+   holdPings: number;
    getBackPings: number;
    goldEarned: number;
    goldSpent: number;
@@ -130,7 +111,7 @@ export type ParticipantDto = {
    magicDamageDealt: number;
    magicDamageDealtToChampions: number;
    magicDamageTaken: number;
-   missions: string[]; //TODO: Create a type for missions
+   missions: MissionsDto;
    neutralMinionsKilled: number;
    needVisionPings: number;
    nexusKills: number;
@@ -153,23 +134,7 @@ export type ParticipantDto = {
    playerScore10: number;
    playerScore11: number;
    pentaKills: number;
-   perks: { //TODO: Create a type for perks
-      statPerks: {
-         defense: number;
-         flex: number;
-         offense: number;
-      }
-      styles: {
-         description: string;
-         selections: {
-            perk: number;
-            var1: number;
-            var2: number;
-            var3: number;
-         }[]
-         style: number;
-      }[]
-   }
+   perks: PerksDto;
    physicalDamageDealt: number;
    physicalDamageDealtToChampions: number;
    physicalDamageTaken: number;
@@ -179,6 +144,7 @@ export type ParticipantDto = {
    playerAugment3: number;
    playerAugment4: number;
    playerSubteamId: number;
+   subteamPlacement: number;
    profileIcon: number;
    pushPings: number;
    puuid: string;
@@ -231,6 +197,21 @@ export type ParticipantDto = {
    win: boolean;
 }
 
+export type ChallengesDto = Record<string, number | string | boolean | null>;
+
+export type MissionsDto = {
+   playerScore0: number;
+   playerScore1: number;
+   playerScore2: number;
+   playerScore3: number;
+   playerScore4: number;
+   playerScore5: number;
+   playerScore6: number;
+   playerScore7: number;
+   playerScore8: number;
+   playerScore9: number;
+}
+
 export type PerksDto = {
    statPerks: PerkStatsDto;
    styles: PerkStyleDto[];
@@ -255,30 +236,41 @@ export type PerkStyleSelectionDto = {
    var3: number;
 }
 
-export type Ban = {
-   championId: number;
-   pickTurn: number;
-}
-
-export type ObjectiveStat = {
-   first: boolean;
-   kills: number;
-}
-
-export type Team = {
-   bans: Ban[];
+export type TeamDto = {
+   bans: BanDto[];
    objectives: {
-      baron: ObjectiveStat;
-      champion: ObjectiveStat;
-      dragon: ObjectiveStat;
-      inhibitor: ObjectiveStat;
-      riftHerald: ObjectiveStat;
-      tower: ObjectiveStat;
+      baron: ObjectivesDto;
+      champion: ObjectivesDto;
+      dragon: ObjectivesDto;
+      inhibitor: ObjectivesDto;
+      riftHerald: ObjectivesDto;
+      tower: ObjectivesDto;
    }
    teamId: number;
    win: boolean;
 }
 
+export type BanDto = {
+   championId: number;
+   pickTurn: number;
+}
+
+export type ObjectivesDto = {
+   baron: ObjectiveDto;
+   champion: ObjectiveDto;
+   dragon: ObjectiveDto;
+   hords: ObjectiveDto;
+   inhibitor: ObjectiveDto;
+   riftHerald: ObjectiveDto;
+   tower: ObjectiveDto;
+}
+
+export type ObjectiveDto = {
+   first: boolean;
+   kills: number;
+}
+
+// Custom Types for easier handling of Summoner Spells and Runes data
 export type SummonerSpell = {
    id: string;
    name: string;

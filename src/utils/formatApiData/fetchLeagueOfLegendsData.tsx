@@ -1,6 +1,8 @@
 import { AccountInformation, MatchDto, SummonerProfile, SummonerSpell, SummonerSpells } from "@/types/LeagueOfLegends";
+import { count } from "console";
 
-const LeagueAPIRoute = `https://americas.api.riotgames.com/riot`
+const LeagueAPIRoute = `https://americas.api.riotgames.com`
+const apiKey = process.env.RIOT_API_KEY;
 
 
 /**
@@ -21,12 +23,11 @@ export async function fetchAccountByRiotID(
    riotTag: string
 ): Promise<AccountInformation> {
 
-   const apiKey = process.env.RIOT_API_KEY;
    if (!apiKey) throw new Error("RIOT_API_KEY is not defined in environment variables.");
 
    // TODO: Implement region swapping in the future. For now, we will default to the Americas endpoint for all requests.
-   const url = `${LeagueAPIRoute}/account/v1/accounts/by-riot-id/${riotName}/${riotTag}`;
-
+   const url = `${LeagueAPIRoute}/riot/account/v1/accounts/by-riot-id/${riotName}/${riotTag}`;
+   console.log(url);
    try {
       const response = await fetch(url, {
          headers: {
@@ -40,13 +41,9 @@ export async function fetchAccountByRiotID(
          throw new Error(`Riot API responded with status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const accountData: AccountInformation = await response.json();
+      return accountData;
 
-      return {
-         puuid: data.puuid,
-         gameName: data.gameName,
-         tagLine: data.tagLine,
-      };
    } catch (error) {
       console.error(`[RiotAPI] fetchAccountByRiotID failed:`, error);
       throw error;
@@ -55,12 +52,29 @@ export async function fetchAccountByRiotID(
 
 
 // Fetches the match IDs of a player using their PUUID
-export async function fetchMatchIdsByPUUID(puuid: string): Promise<string[]> {
-   try {
-      const response = await fetch(`${LeagueAPIRoute}/match/v1/matches/by-puuid/${puuid}`);
+export async function fetchMatchIdsByPUUID(
+   puuid: string,
+   count: number = 20
+): Promise<string[]> {
+   if (!apiKey) throw new Error("RIOT_API_KEY is not defined in environment variables.");
 
-      const fetchedData = await response.json();
-      return fetchedData.data;
+   const url = `${LeagueAPIRoute}/lol/match/v5/matches/by-puuid/${puuid}/ids?count=${count}`;
+
+   try {
+      const response = await fetch(url, {
+         headers: {
+            "X-Riot-Token": apiKey,
+         },
+      });
+
+      if (!response.ok) {
+         if (response.status === 404) throw new Error(`No matches found for PUUID: ${puuid}`);
+         if (response.status === 429) throw new Error("Rate limit exceeded. Please try again later.");
+         throw new Error(`Riot API responded with status: ${response.status}`);
+      }
+
+      const matchHistoryIDs: string[] = await response.json();
+      return matchHistoryIDs;
    }
    catch (error: any) {
       console.error('Error fetching match IDs by PUUID:', error);
@@ -70,17 +84,22 @@ export async function fetchMatchIdsByPUUID(puuid: string): Promise<string[]> {
 
 // Fetches the match data using the match ID
 export async function fetchMatchByMatchID(matchId: string): Promise<MatchDto> {
+   if (!apiKey) throw new Error("RIOT_API_KEY is not defined in environment variables.");
+
    try {
-      const response = await fetch(`${LeagueAPIRoute}/match/v1/matches/${matchId}`);
+      const response = await fetch(`${LeagueAPIRoute}/lol/match/v5/matches/${matchId}`, {
+         headers: {
+            "X-Riot-Token": apiKey,
+         },
+      });
 
       if (response.status === 404) {
          const errorData = await response.json();
          throw new Error(`Invalid match ID: ${errorData.error}`);
       }
 
-      const fetchedData = await response.json();
-      console.log(`fetchMatchByMatchID: fetchedData: for matchId: ${matchId}`);
-      return fetchedData.data;
+      const matchData = await response.json();
+      return matchData;
    }
    catch (error: any) {
       console.error('Error fetching match data:', error);
