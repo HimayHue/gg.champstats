@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SummonerDTO, AccountInformation } from "@/types/LeagueOfLegends";
 import Image from "next/image";
 
+
 interface TopChampionsCardProps {
    mostPlayedChampions: {
       champion: string;
@@ -45,11 +46,13 @@ export function TopChampionsCard({ mostPlayedChampions }: TopChampionsCardProps)
    );
 }
 
+
 interface ProfileSummaryCardProps {
    summonerProfileData: SummonerDTO | null;
    accountData: AccountInformation | null;
+   mostPlayedCHampion: string;
 }
-export function ProfileSummaryCard({ summonerProfileData: profileData, accountData }: ProfileSummaryCardProps) {
+export function SummonerProfileBanner({ summonerProfileData: profileData, accountData, mostPlayedCHampion }: ProfileSummaryCardProps) {
 
    if (!profileData || !accountData) {
       return (
@@ -62,37 +65,50 @@ export function ProfileSummaryCard({ summonerProfileData: profileData, accountDa
    }
 
    return (
-      <Card className="flex flex-row">
-         <CardContent className="text-sm text-muted-foreground flex flex-col items-center">
-            <div className="relative">
-               <Image
-                  src={`https://ddragon.leagueoflegends.com/cdn/13.6.1/img/profileicon/${profileData.profileIconId}.png`}
-                  alt="Profile Icon"
-                  width={100}
-                  height={100}
-                  className="rounded-sm border-2 border-primary"
-               />
-               <p
-                  className="absolute left-1/2 bottom-0 w-fit -translate-x-1/2 translate-y-1/2  rounded-sm border border-primary/80 bg-slate-900/90 px-2 py-0.5 text-xs text-white"
-               >
-                  {profileData.summonerLevel || "N/A"}
-               </p>
+      <Card className="relative overflow-hidden">
+         <div
+            className="absolute inset-0 bg-cover"
+            style={{
+               backgroundImage: `url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${mostPlayedCHampion}_0.jpg)`,
+               backgroundPosition: "center -50px",
+            }}
+         />
+         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/75 to-slate-950/40" />
+
+         <div className="relative flex flex-row items-center gap-6 px-6 py-10">
+            <CardContent className="text-sm text-muted-foreground flex flex-col items-center bg-transparent p-0">
+               <div className="relative">
+                  <Image
+                     src={`https://ddragon.leagueoflegends.com/cdn/13.6.1/img/profileicon/${profileData.profileIconId}.png`}
+                     alt="Profile Icon"
+                     width={110}
+                     height={110}
+                     className="rounded-sm border-2 border-primary shadow-lg"
+                  />
+                  <p
+                     className="absolute left-1/2 bottom-0 w-fit -translate-x-1/2 translate-y-1/2 rounded-sm border border-primary/80 bg-slate-900/90 px-2 py-0.5 text-xs text-white"
+                  >
+                     {profileData.summonerLevel || "N/A"}
+                  </p>
+               </div>
+            </CardContent>
+
+            <div className="flex flex-col gap-3 text-white">
+               <CardTitle className="text-lg flex items-center gap-3">
+                  <span className="text-4xl font-bold drop-shadow-md">{accountData.gameName}</span>
+                  <span className="text-3xl rounded-sm border border-sky-500/50 bg-sky-500/25 px-2.5 py-1 text-sm font-semibold tracking-tight text-sky-50 drop-shadow">
+                     #{accountData.tagLine}
+                  </span>
+               </CardTitle>
+               <Button variant="default" className="w-fit px-10">
+                  Update
+               </Button>
             </div>
-         </CardContent>
-         <div className="flex flex-col gap-2 ">
-            <CardTitle className="text-lg flex items-center gap-2">
-               <span className="text-4xl font-bold">{accountData.gameName}</span>
-               <span className="text-3xl rounded-sm border border-sky-500/50 bg-sky-500/15 px-2 py-0.5 text-sm font-semibold tracking-tight text-sky-100">
-                  #{accountData.tagLine}
-               </span>
-            </CardTitle>
-            <Button variant={"default"} className="w-fit">
-               Update
-            </Button>
          </div>
       </Card>
    )
 }
+
 
 interface MatchHistoryOverviewCardProps {
    matchHistoryData: {
@@ -144,3 +160,5 @@ export function MatchHistoryOverviewCard({ matchHistoryData }: MatchHistoryOverv
       </Card>
    );
 }
+
+

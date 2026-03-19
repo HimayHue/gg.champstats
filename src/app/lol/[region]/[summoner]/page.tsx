@@ -1,11 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { MatchSummaryCard } from "@/components/match-history";
-import { toTitleCase } from "@/utils/format";
-import { fetchAccountByRiotID, fetchMatchDataByMatchID, fetchMatchIDsByPUUID, fetchSummonerProfileByPUUID } from "@/utils/formatApiData/fetchLeagueOfLegendsData";
+import { MatchHistoryOverviewCard, SummonerProfileBanner, TopChampionsCard } from "./_components/profile-summary";
 import AdTemplate from "@/components/ads/ads";
-import { MatchHistoryOverviewCard, ProfileSummaryCard, TopChampionsCard } from "./_components/profile-summary";
+
+import { getAccountByRiotId } from "@/lib/api-providers/riot-service";
+import { getMatchDetails, getMatchIds, getSummonerProfile } from "@/lib/api-providers/league-of-legends-service";
+
+import { toTitleCase, formatMatchDuration } from "@/utils/formatters";
 
 interface PageProps {
    params: Promise<{
@@ -14,32 +18,6 @@ interface PageProps {
    }>;
 }
 
-/**
- * Formats match duration from seconds to a more readable "Xm YYs" format.
- * @param seconds - The duration of the match in seconds.
- * @returns A string representing the formatted match duration.
- * @example
- * formatMatchDuration(125) // returns "2m 05s"
- */
-const formatMatchDuration = (seconds: number) => {
-   const mins = Math.floor(seconds / 60);
-   const secs = Math.max(0, Math.round(seconds % 60));
-   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
-};
-
-//TODO: Possibly remove this
-/**
- * Shortens the game version to a more readable format.
- * @param gameVersion - The full game version string.
- * @returns A shortened version of the game version.
- * @example
- * gameVersionShortened("14.5.1") // returns "14.5.1"
- */
-const gameVersionShortened = (gameVersion?: string) => {
-   if (!gameVersion) return "14.5.1";
-   const parts = gameVersion.split(".");
-   return parts.length >= 2 ? `${parts[0]}.${parts[1]}.1` : gameVersion;
-};
 
 export default async function Page({ params }: PageProps) {
    const { region, summoner } = await params;
@@ -56,7 +34,7 @@ export default async function Page({ params }: PageProps) {
 
 
    // Fetch PUUID using the Riot ID (gameName and tagLine)
-   const accountData = await fetchAccountByRiotID(rawRiotName, rawRiotTag).catch((error) => {
+   const accountData = await getAccountByRiotId(rawRiotName, rawRiotTag).catch((error) => {
       console.error("Account Fetch Error:", error);
       return null;
    });
@@ -76,13 +54,13 @@ export default async function Page({ params }: PageProps) {
    }
 
    // Fetch summoner profile data using the PUUID
-   const summonerProfileData = await fetchSummonerProfileByPUUID(accountData.puuid).catch((error) => {
+   const summonerProfileData = await getSummonerProfile(accountData.puuid).catch((error) => {
       console.error("fetchSummonerProfileByPUUID", error);
       return null;
    });
 
    // Fetch match history ID's using the player's PUUID
-   const matchHistoryIDs = await fetchMatchIDsByPUUID(accountData.puuid, matchesToDisplay);
+   const matchHistoryIDs = await getMatchIds(accountData.puuid, matchesToDisplay);
    if (matchHistoryIDs.length === 0) {
       return (
          <main className="min-h-screen bg-slate-950 text-slate-50">
@@ -101,7 +79,7 @@ export default async function Page({ params }: PageProps) {
 
    // Fetch match data for each match history ID
    const matchHistoryData = await Promise.all(
-      matchHistoryIDs.map((id) => fetchMatchDataByMatchID(id))
+      matchHistoryIDs.map((id) => getMatchDetails(id))
    );
    if (matchHistoryData.length === 0) {
       return (
@@ -167,7 +145,6 @@ export default async function Page({ params }: PageProps) {
 
 
 
-   const version = gameVersionShortened(matchHistoryData[0]?.info.gameVersion);
 
    return (
       <main className="min-h-screen bg-slate-950 text-slate-50 border">
@@ -176,7 +153,7 @@ export default async function Page({ params }: PageProps) {
 
 
             <div className="flex flex-col gap-6 lg:col-span-3">
-               {summonerProfileData && (<ProfileSummaryCard summonerProfileData={summonerProfileData} accountData={accountData} />)}
+               {summonerProfileData && (<SummonerProfileBanner summonerProfileData={summonerProfileData} accountData={accountData} mostPlayedCHampion={mostPlayedChampions[0].champion} />)}
                <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 ring-foreground/5">
                   <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                      <div className="space-y-1">
