@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SummonerDTO, AccountInformation } from "@/types/LeagueOfLegends";
+import { SummonerDTO, AccountInformation, MatchDto } from "@/types/LeagueOfLegends";
+import { MatchSummaryCard } from "@/components/match-history";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 
 
 interface TopChampionsCardProps {
@@ -11,7 +13,7 @@ interface TopChampionsCardProps {
       winRate: number;
    }[];
 }
-export function TopChampionsCard({ mostPlayedChampions }: TopChampionsCardProps) {
+export function MostPlayedChampionsColumn({ mostPlayedChampions }: TopChampionsCardProps) {
    return (
       <Card className="bg-slate-900/50 ring-foreground/5">
          <CardHeader>
@@ -110,55 +112,66 @@ export function SummonerProfileBanner({ summonerProfileData: profileData, accoun
 }
 
 
-interface MatchHistoryOverviewCardProps {
-   matchHistoryData: {
-      championName: string;
-      role: string;
-      win: boolean;
-      kills: number;
-      deaths: number;
-      assists: number;
-   }[];
-}
-/**
- * Simple card component to display a brief overview of the player's recent match history, including champion played, role,
- *  and basic performance stats (KDA, win/loss, game duration, gold/min cs/min, kill participation).
- * @param param0 
- * @returns 
- */
-export function MatchHistoryOverviewCard({ matchHistoryData }: MatchHistoryOverviewCardProps) {
+export function MatchHistoryColumn({ matchHistoryData, accountData }: { matchHistoryData: MatchDto[]; accountData: AccountInformation }) {
    return (
-      <Card className="bg-slate-900/50 ring-foreground/5">
-         <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Match History</CardTitle>
-         </CardHeader>
-         <CardContent className="text-xs text-muted-foreground">
-            {matchHistoryData.length === 0 ? (
+      <>
+         {matchHistoryData.map((match, index) => (
+            <MatchSummaryCard key={match.metadata.matchId ?? index} match={match} puuid={accountData.puuid} />
+         ))}
+      </>
+
+   );
+}
+
+
+export function MatchHistoryPerformanceCard(
+   { riotName, riotTag, gamesPlayed, winRate, avgKda, avgCsPerMin, avgDuration, playerTotals, recentGamesCount }:
+      { riotName: string; riotTag: string; gamesPlayed: number; winRate: number; avgKda: string; avgCsPerMin: string; avgDuration: string; recentGamesCount?: number; playerTotals: { wins: number; kills: number; deaths: number; assists: number; cs: number } }) {
+   const gamesShown = recentGamesCount ?? gamesPlayed;
+
+   if (gamesPlayed === 0) {
+      return (
+         <Card className="bg-slate-900/50 ring-foreground/5">
+            <CardHeader>
+               <CardTitle className="text-sm text-muted-foreground">Match History</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs text-muted-foreground">
                <p>No match history data available.</p>
-            ) : (
-               <ul className="space-y-2">
-                  {matchHistoryData.map((match, index) => (
-                     <li key={index} className="flex items-center gap-2">
-                        <Image
-                           src={`https://ddragon.leagueoflegends.com/cdn/13.6.1/img/champion/${match.championName}.png`}
-                           alt={match.championName}
-                           width={32}
-                           height={32}
-                           className="rounded-full"
-                        />
-                        <div>
-                           <p className="font-medium">{match.championName} - {match.role}</p>
-                           <p className="text-xs text-muted-foreground">
-                              {match.win ? "Win" : "Loss"} - {match.kills}/{match.deaths}/{match.assists}
-                           </p>
-                        </div>
-                     </li>
-                  ))}
-               </ul>
-            )}
+            </CardContent>
+         </Card>
+      );
+   }
+
+   return (
+      <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 ring-foreground/5">
+         <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+               <CardTitle className="text-2xl font-bold text-white">
+                  {riotName}
+                  <span className="text-slate-400">#{riotTag}</span>
+               </CardTitle>
+               <div className="flex flex-wrap gap-2 pt-1">
+                  <Badge variant="secondary">{gamesPlayed} games</Badge>
+                  <Badge variant="secondary">{winRate}% win rate</Badge>
+               </div>
+            </div>
+         </CardHeader>
+         <CardContent className="grid gap-3 md:grid-cols-4">
+            <StatTile label="Win rate" value={`${winRate}%`} hint={`${playerTotals.wins}W / ${gamesPlayed - playerTotals.wins}L`} />
+            <StatTile label="Average KDA" value={`${avgKda}:1`} hint={`${playerTotals.kills}/${playerTotals.deaths}/${playerTotals.assists}`} />
+            <StatTile label="CS per min" value={avgCsPerMin} hint={`${playerTotals.cs} total CS`} />
+            <StatTile label="Avg game length" value={avgDuration} hint={`${gamesShown} recent games`} />
          </CardContent>
       </Card>
    );
 }
 
-
+function StatTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
+   return (
+      <div className="rounded-xl bg-slate-900/40 px-4 py-3 ring-1 ring-white/5">
+         <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+         <p className="text-xl font-semibold text-white">{value}</p>
+         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </div>
+   );
+}

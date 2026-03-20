@@ -331,7 +331,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    );
 
    return (
-      <Card className={`flex flex-col gap-2 p-3 mb-3 border ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
+      <Card className={`flex flex-col gap-2 p-3 border ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
             <div className="flex items-center gap-2">
                <span className={`font-semibold uppercase ${accentColor}`}>{isWin ? "Victory" : "Defeat"}</span>

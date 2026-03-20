@@ -1,9 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-import { MatchSummaryCard } from "@/components/match-history";
-import { MatchHistoryOverviewCard, SummonerProfileBanner, TopChampionsCard } from "./_components/profile-summary";
+import { MatchHistoryColumn, SummonerProfileBanner, MostPlayedChampionsColumn, MatchHistoryPerformanceCard } from "./_components/profile-summary";
 import AdTemplate from "@/components/ads/ads";
 
 import { getAccountByRiotId } from "@/lib/api-providers/riot-service";
@@ -152,78 +148,37 @@ export default async function Page({ params }: PageProps) {
             <AdTemplate />
 
 
-            <div className="flex flex-col gap-6 lg:col-span-3">
-               {summonerProfileData && (<SummonerProfileBanner summonerProfileData={summonerProfileData} accountData={accountData} mostPlayedCHampion={mostPlayedChampions[0].champion} />)}
-               <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 ring-foreground/5">
-                  <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                     <div className="space-y-1">
-                        <CardTitle className="text-2xl font-bold text-white">
-                           {riotName}
-                           <span className="text-slate-400">#{riotTag}</span>
-                        </CardTitle>
-                        <CardDescription className="text-slate-200">
-                           Region {region.toUpperCase()} • PUUID {accountData.puuid}
-                        </CardDescription>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                           <Badge variant="secondary">{gamesPlayed} games</Badge>
-                           <Badge variant="secondary">{winRate}% win rate</Badge>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        <Button size="sm" variant="secondary" disabled>
-                           Refresh
-                        </Button>
-                        <Button size="sm" variant="outline" disabled>
-                           Share
-                        </Button>
-                     </div>
-                  </CardHeader>
-                  <CardContent className="grid gap-3 md:grid-cols-4">
-                     <StatTile label="Win rate" value={`${winRate}%`} hint={`${playerTotals.wins}W / ${gamesPlayed - playerTotals.wins}L`} />
-                     <StatTile label="Average KDA" value={`${avgKda}:1`} hint={`${playerTotals.kills}/${playerTotals.deaths}/${playerTotals.assists}`} />
-                     <StatTile label="CS per min" value={avgCsPerMin} hint={`${playerTotals.cs} total CS`} />
-                     <StatTile label="Avg game length" value={avgDuration} hint={`${matchHistoryData.length} recent games`} />
-                  </CardContent>
-               </Card>
-               <div className="grid gap-4 md:grid-cols-3">
-                  <TopChampionsCard mostPlayedChampions={mostPlayedChampions} />
-                  <MatchHistoryOverviewCard matchHistoryData={matchHistoryData.map((match) => {
-                     const player = match.info.participants.find((p) => p.puuid === accountData.puuid);
-                     return {
-                        championName: player?.championName ?? "Unknown",
-                        role: player?.teamPosition ?? "Unknown",
-                        win: player?.win ?? false,
-                        kills: player?.kills ?? 0,
-                        deaths: player?.deaths ?? 0,
-                        assists: player?.assists ?? 0
-                     };
-                  })} />
+            <div className="grid grid-cols-3 gap-6 lg:col-span-3">
+               {/* Above spanning across */}
+               <div className="col-span-3">
+                  {summonerProfileData && (<SummonerProfileBanner summonerProfileData={summonerProfileData} accountData={accountData} mostPlayedCHampion={mostPlayedChampions[0].champion} />)}
                </div>
 
-               <Card>
-                  <CardHeader>
-                     <CardTitle className="text-xl font-semibold">Match History</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                     {matchHistoryData.map((match, index) => (
-                        <MatchSummaryCard key={match.metadata.matchId ?? index} match={match} puuid={accountData.puuid} />
-                     ))}
-                  </CardContent>
-               </Card>
+
+
+               <div className="flex flex-col col-span-1 gap-y-4">
+                  <MostPlayedChampionsColumn mostPlayedChampions={mostPlayedChampions} />
+               </div>
+
+               <div className="flex flex-col col-span-2 gap-y-4">
+                  <MatchHistoryPerformanceCard
+                     riotName={riotName}
+                     riotTag={riotTag}
+                     gamesPlayed={gamesPlayed}
+                     winRate={winRate}
+                     avgKda={avgKda}
+                     avgCsPerMin={avgCsPerMin}
+                     avgDuration={avgDuration}
+                     playerTotals={playerTotals}
+                     recentGamesCount={matchHistoryData.length}
+                  />
+                  <MatchHistoryColumn matchHistoryData={matchHistoryData} accountData={accountData} />
+               </div>
             </div>
+
 
             <AdTemplate />
          </div>
       </main>
-   );
-}
-
-function StatTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
-   return (
-      <div className="rounded-xl bg-slate-900/40 px-4 py-3 ring-1 ring-white/5">
-         <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-         <p className="text-xl font-semibold text-white">{value}</p>
-         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      </div>
    );
 }
