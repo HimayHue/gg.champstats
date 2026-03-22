@@ -3,103 +3,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MatchDto } from "@/types/LeagueOfLegends";
+import { MatchDto, Participant } from "@/types/LeagueOfLegends";
 import Image from "next/image";
-import { LOL_RUNES, LolRuneId } from "@/lib/constants/league-of-legends/runes";
-
-interface MatchSummaryCardProps {
-   match: MatchDto;
-   puuid: string;
-}
-
-const formatDuration = (seconds: number): string => {
-   const mins = Math.floor(seconds / 60);
-   const secs = Math.max(0, seconds % 60);
-   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
-};
-
-const formatDate = (timestamp?: number): string => {
-   if (!timestamp) return "";
-   const date = new Date(timestamp);
-   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-};
-
-const itemIdsFromParticipant = (p: MatchDto["info"]["participants"][number]) => [
-   p.item0,
-   p.item1,
-   p.item2,
-   p.item3,
-   p.item4,
-   p.item5,
-   p.item6,
-];
-
-const SUMMONER_SPELL_MAP: Record<number, string> = {
-   1: "SummonerBoost",
-   3: "SummonerExhaust",
-   4: "SummonerFlash",
-   6: "SummonerHaste",
-   7: "SummonerHeal",
-   11: "SummonerSmite",
-   12: "SummonerTeleport",
-   13: "SummonerMana",
-   14: "SummonerDot",
-   21: "SummonerBarrier",
-   30: "SummonerPoroRecall",
-   31: "SummonerPoroThrow",
-   32: "SummonerSnowball",
-};
-
-const SUMMONER_SPELL_LABELS: Record<number, string> = {
-   1: "Cleanse",
-   3: "Exhaust",
-   4: "Flash",
-   6: "Ghost",
-   7: "Heal",
-   11: "Smite",
-   12: "Teleport",
-   13: "Clarity",
-   14: "Ignite",
-   21: "Barrier",
-   30: "To the King!",
-   31: "Poro Toss",
-   32: "Snowball",
-};
+import { getRuneData, getRuneIconUrl, itemIdsFromParticipant, spellIcon, spellLabel } from "@/utils/league-of-legends/mappers";
+import { formatGameStartDate, formatMatchDuration, getDDragonVersion } from "@/utils/formatters";
 
 
-const getRuneIcon = (perkId?: number): string => {
-   if (!perkId) return "";
-
-   // Convert the number to a string to match the Object keys
-   // and cast it to LolRuneId so TypeScript knows it's a valid key
-   const rune = LOL_RUNES[perkId.toString() as LolRuneId];
-
-   if (!rune) return "";
-
-   const RUNE_BASE_URL = `https://ddragon.leagueoflegends.com/cdn/img/`;
-   return `${RUNE_BASE_URL}${rune.icon}`;
-};
-
-const shortVersion = (gameVersion?: string) => {
-   if (!gameVersion) return "14.5.1";
-   const parts = gameVersion.split(".");
-   return parts.length >= 2 ? `${parts[0]}.${parts[1]}.1` : gameVersion;
-};
-
-const spellIcon = (spellId?: number, version?: string) => {
-   if (!spellId) return "";
-   const key = SUMMONER_SPELL_MAP[spellId];
-   if (!key) return "";
-   const v = version || "14.5.1";
-   return `https://ddragon.leagueoflegends.com/cdn/${v}/img/spell/${key}.png`;
-};
-
-const spellLabel = (spellId?: number) => {
-   if (!spellId) return "";
-   return SUMMONER_SPELL_LABELS[spellId] || `Spell ${spellId}`;
-};
-
-type Participant = MatchDto["info"]["participants"][number];
+const ChampionIcon = ({ championName, version }: { championName: string; version: string }) => (
+   <div className="h-12 w-12">
+      <Image
+         src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`}
+         alt={championName}
+         fill
+         sizes="36px"
+         className="object-cover"
+      />
+   </div>
+);
 
 interface SpellRuneIconsProps {
    spellD?: string;
@@ -109,9 +29,8 @@ interface SpellRuneIconsProps {
    keystoneId?: number;
    secondaryStyleId?: number;
 }
-
 const SpellsAndRunesIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keystoneId, secondaryStyleId }: SpellRuneIconsProps) => (
-   <div className="flex items-center gap-1 mt-1">
+   <div className="grid grid-cols-2 gap-1 content-center h-14">
       {spellD && (
          <Image src={spellD} alt={spellDLabel || "Spell D"} title={spellDLabel} width={20} height={20} className="rounded" />
       )}
@@ -119,20 +38,20 @@ const SpellsAndRunesIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keyston
          <Image src={spellF} alt={spellFLabel || "Spell F"} title={spellFLabel} width={20} height={20} className="rounded" />
       )}
       {keystoneId && (
-         <Image src={getRuneIcon(keystoneId)} alt={`Keystone ${keystoneId}`} title={`Keystone ${keystoneId}`} width={20} height={20} className="rounded-full" />
+         <Image src={getRuneIconUrl(keystoneId)} alt={`Keystone ${keystoneId}`} title={`Keystone ${keystoneId}`} width={20} height={20} className="rounded-full" />
       )}
       {secondaryStyleId && (
-         <Image src={getRuneIcon(secondaryStyleId)} alt={`Secondary ${secondaryStyleId}`} title={`Secondary ${secondaryStyleId}`} width={20} height={20} className="rounded-full" />
+         <Image src={getRuneIconUrl(secondaryStyleId)} alt={`Secondary ${secondaryStyleId}`} title={`Secondary ${secondaryStyleId}`} width={20} height={20} className="rounded-full" />
       )}
    </div>
 );
+
 
 interface ItemGridProps {
    itemIds: number[];
    itemNames: Record<number, string>;
    version: string;
 }
-
 const ItemGrid = ({ itemIds, itemNames, version }: ItemGridProps) => (
    <div className="grid grid-cols-4 gap-1 justify-end">
       {itemIds.map((id, idx) => (
@@ -155,6 +74,7 @@ const ItemGrid = ({ itemIds, itemNames, version }: ItemGridProps) => (
    </div>
 );
 
+
 interface RosterColumnProps {
    title: string;
    participants: Participant[];
@@ -162,7 +82,6 @@ interface RosterColumnProps {
    maxDamage: number;
    barColorClass: string;
 }
-
 const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }: RosterColumnProps) => (
    <div className="flex flex-col gap-1">
       <span className="text-[11px] font-semibold uppercase text-muted-foreground">{title}</span>
@@ -184,6 +103,7 @@ const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }
                            src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${p.championName}.png`}
                            alt={p.championName}
                            fill
+                           sizes="40px"
                            className="object-cover"
                         />
                      </div>
@@ -195,7 +115,7 @@ const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }
                      {spellD && <Image src={spellD} alt={spellDLabel} title={spellDLabel} width={18} height={18} className="rounded" />}
                      {spellF && <Image src={spellF} alt={spellFLabel} title={spellFLabel} width={18} height={18} className="rounded" />}
                      {/* TODO get the rune itself */}
-                     {keystone && <Image src={getRuneIcon(keystone)} alt={`Rune ${keystone}`} title={`Rune ${keystone}`} width={18} height={18} className="rounded-full" />}
+                     {keystone && <Image src={getRuneIconUrl(keystone)} alt={`Rune ${keystone}`} title={`Rune ${keystone}`} width={18} height={18} className="rounded-full" />}
                      <div className="flex-1 h-2 bg-black/10 rounded overflow-hidden">
                         <div className={`h-full ${barColorClass}`} style={{ width }} />
                      </div>
@@ -208,13 +128,13 @@ const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }
    </div>
 );
 
+
 interface CompactLobbyProps {
    blueSide: Participant[];
    redSide: Participant[];
    version: string;
    highlightPuuid: string;
 }
-
 const CompactLobby = ({ blueSide, redSide, version, highlightPuuid }: CompactLobbyProps) => {
    const renderChip = (p: Participant, isSelf: boolean) => (
       <div
@@ -228,6 +148,7 @@ const CompactLobby = ({ blueSide, redSide, version, highlightPuuid }: CompactLob
                alt={p.championName}
                fill
                className="object-cover"
+               sizes="40px"
             />
          </div>
          <span className="max-w-[80px] truncate text-[10px] text-muted-foreground leading-none">{p.riotIdGameName || p.summonerName}</span>
@@ -251,6 +172,11 @@ const CompactLobby = ({ blueSide, redSide, version, highlightPuuid }: CompactLob
    );
 };
 
+
+interface MatchSummaryCardProps {
+   match: MatchDto;
+   puuid: string;
+};
 export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    const [expanded, setExpanded] = useState(false);
    const [itemNames, setItemNames] = useState<Record<number, string>>({});
@@ -267,8 +193,8 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    const ratio = ((kills + assists) / Math.max(1, deaths)).toFixed(2);
 
    const durationSeconds = match.info.gameDuration ?? participant.timePlayed ?? 0;
-   const duration = formatDuration(durationSeconds);
-   const endedAt = formatDate(match.info.gameEndTimestamp);
+   const duration = formatMatchDuration(durationSeconds);
+   const endedAt = formatGameStartDate(match.info.gameStartTimestamp);
 
    const totalCs = participant.totalMinionsKilled + participant.neutralMinionsKilled;
    const csPerMin = durationSeconds > 0 ? (totalCs / (durationSeconds / 60)).toFixed(1) : "0";
@@ -292,7 +218,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    // Items in the same order u.gg shows (6 slots + ward)
    const itemIds = itemIdsFromParticipant(participant);
 
-   const version = useMemo(() => shortVersion(match.info.gameVersion), [match.info.gameVersion]);
+   const version = useMemo(() => getDDragonVersion(match.info.gameVersion), [match.info.gameVersion]);
 
    const keystoneId = participant.perks?.styles?.[0]?.selections?.[0]?.perk;
    const secondaryStyleId = participant.perks?.styles?.[1]?.style;
@@ -338,6 +264,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
 
    return (
       <Card className={`flex flex-col gap-2 p-3 border ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
+
          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
             <div className="flex items-center gap-2">
                <span className={`font-semibold uppercase ${accentColor}`}>{isWin ? "Victory" : "Defeat"}</span>
@@ -358,31 +285,21 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
 
          <div className="grid grid-cols-7 gap-3 items-center border">
             {/* Champion + level */}
-            <div className="flex items-center gap-3 min-w-[170px]">
-               <div className="relative h-14 w-14 overflow-hidden rounded-xl ring-2 ring-black/10">
-                  <Image
-                     src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`}
-                     alt={championName}
-                     fill
-                     className="object-cover"
-                  />
+            <div className="flex items-center">
+               <div className="relative ">
+                  <ChampionIcon championName={championName} version={version} />
                   <span className="absolute bottom-0 right-0 bg-black/70 text-white text-[10px] px-1 rounded-tl">
                      {participant.champLevel}
                   </span>
                </div>
-               <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{championName}</span>
-                  <span className="text-[11px] text-muted-foreground">K/D/A {kda}</span>
-                  <span className="text-[11px] text-muted-foreground">KP {kp}</span>
-                  <SpellsAndRunesIcons
-                     spellD={spellD}
-                     spellF={spellF}
-                     spellDLabel={spellDLabel}
-                     spellFLabel={spellFLabel}
-                     keystoneId={keystoneId}
-                     secondaryStyleId={secondaryStyleId}
-                  />
-               </div>
+               <SpellsAndRunesIcons
+                  spellD={spellD}
+                  spellF={spellF}
+                  spellDLabel={spellDLabel}
+                  spellFLabel={spellFLabel}
+                  keystoneId={keystoneId}
+                  secondaryStyleId={secondaryStyleId}
+               />
             </div>
 
             {/* KDA block */}

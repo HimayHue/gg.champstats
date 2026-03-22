@@ -7,11 +7,21 @@ Two values are required, the gameName and tagLine of the player.
 Example URL: champstats.gg/lol/radec%20himay-NA1
 */
 
+
 export type AccountInformation = {
    puuid: string;
    gameName: string;
    tagLine: string;
 }
+
+
+export type SummonerDTO = {
+   profileIconId: number;
+   revisionDate: number;
+   puuid: string;
+   summonerLevel: number;
+}
+
 
 export type MatchDto = {
    metadata: MetadataDto;
@@ -322,9 +332,6 @@ export type Perk = {
 
 export type PerkData = Perk[];
 
-export type SummonerDTO = {
-   profileIconId: number;
-   revisionDate: number;
-   puuid: string;
-   summonerLevel: number;
-}
+
+export type Participant = MatchDto["info"]["participants"][number];
+

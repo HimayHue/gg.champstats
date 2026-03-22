@@ -6,7 +6,21 @@ import { getAccountByRiotId } from "@/lib/api-providers/riot-service";
 import { getMatchDetails, getMatchIds, getSummonerProfile } from "@/lib/api-providers/league-of-legends-service";
 
 import { toTitleCase, formatMatchDuration } from "@/utils/formatters";
+import { Metadata } from "next";
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+   const { summoner } = await params;
+
+   // Mirror the logic you have in your Page component
+   const [rawRiotName, rawRiotTag] = summoner.split("-");
+   const riotName = toTitleCase(decodeURIComponent(rawRiotName));
+   const riotTag = rawRiotTag.toUpperCase();
+
+   return {
+      title: `${riotName} #${riotTag} - Summoner Stats - League of Legends`,
+      description: `Check ${riotName}#${riotTag}'s real-time LoL stats, match history, and most played champions on ChampStats.`,
+   };
+}
 interface PageProps {
    params: Promise<{
       region: string;

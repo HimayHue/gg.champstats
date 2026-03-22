@@ -1,0 +1,31 @@
+export const SUMMONER_SPELL_MAP: Record<number, string> = {
+   1: "SummonerBoost",
+   3: "SummonerExhaust",
+   4: "SummonerFlash",
+   6: "SummonerHaste",
+   7: "SummonerHeal",
+   11: "SummonerSmite",
+   12: "SummonerTeleport",
+   13: "SummonerMana",
+   14: "SummonerDot",
+   21: "SummonerBarrier",
+   30: "SummonerPoroRecall",
+   31: "SummonerPoroThrow",
+   32: "SummonerSnowball",
+};
+
+export const SUMMONER_SPELL_LABELS: Record<number, string> = {
+   1: "Cleanse",
+   3: "Exhaust",
+   4: "Flash",
+   6: "Ghost",
+   7: "Heal",
+   11: "Smite",
+   12: "Teleport",
+   13: "Clarity",
+   14: "Ignite",
+   21: "Barrier",
+   30: "To the King!",
+   31: "Poro Toss",
+   32: "Snowball",
+};

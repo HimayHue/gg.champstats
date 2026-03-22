@@ -1,7 +1,7 @@
 /**
  * This script fetches the latest rune data from Riot's Data Dragon API and generates a TypeScript file containing a mapping of rune IDs to their names, trees, and icons. 
  * This allows us to keep our rune data up-to-date without manual intervention.
- *  You can fetch the latest version from: https://ddragon.leagueoflegends.com/api/versions.json
+ * You can fetch the latest version from: https://ddragon.leagueoflegends.com/api/versions.json
  */
 
 import fs from 'fs';
@@ -45,8 +45,10 @@ async function generateRuneMap() {
       // We must define the file content before writing it!
       const fileContent = `
 /**
- * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated from Riot Data Dragon v${VERSION}
+ * AUTO-GENERATED FILE FROM \`scripts/update-league-of-legends-runes.ts\` - DO NOT EDIT MANUALLY
+ * Generated from Riot Data Dragon v${VERSION} on ${new Date().toLocaleString()} Arizona Time
+ * This file provides an O(1) lookup for runes by their ID, including both rune trees and individual runes.
+ * Each entry includes the rune's name, icon, and parent tree information (for individual runes).
  */
 
 export const LOL_RUNES = ${JSON.stringify(flattenedRunes, null, 2)} as const;

@@ -17,12 +17,6 @@ export function formatTimeAgo(date: Date): string {
 }
 
 
-export function formatMatchDuration(seconds: number): string {
-   const minutes = Math.floor(seconds / 60);
-   const remainingSeconds = seconds % 60;
-   return `${minutes}m ${remainingSeconds}s`;
-}
-
 
 export function formatKDA(kills: number, deaths: number, assists: number): string {
    const kda = deaths === 0 ? kills + assists : ((kills + assists) / deaths).toFixed(2);
@@ -54,8 +48,47 @@ export function abbreviateNumber(value: number): string {
    return value.toString();
 }
 
+
 export function toTitleCase(value: string): string {
    return value
       .toLowerCase()
       .replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+
+export const formatMatchDuration = (seconds: number): string => {
+   const mins = Math.floor(seconds / 60);
+   const secs = Math.max(0, seconds % 60);
+   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+};
+
+/**
+ * Formats a timestamp as a date string.
+ * e.g., "Jan 1, 2023" for a timestamp corresponding to January 1st, 2023.
+ * @param timestamp 
+ * @returns 
+ */
+export const formatGameStartDate = (timestamp?: number): string => {
+   if (!timestamp) return "";
+   const date = new Date(timestamp);
+   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+};
+
+
+
+/**
+ * Normalizes a full game version (e.g., 14.5.612.9) to a 
+ * Data Dragon compatible version (e.g., 14.5.1).
+ */
+export const getDDragonVersion = (gameVersion?: string): string => {
+   if (!gameVersion) return "16.6.1"; // Updated to current 2026 season default
+
+   const [major, minor] = gameVersion.split(".");
+
+   // If we have at least Major and Minor, return the DDragon format
+   if (major && minor) {
+      return `${major}.${minor}.1`;
+   }
+
+   return gameVersion;
+};
