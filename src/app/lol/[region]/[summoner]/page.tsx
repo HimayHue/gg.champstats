@@ -144,11 +144,11 @@ export default async function Page({ params }: PageProps) {
 
    return (
       <main className="min-h-screen bg-slate-950 text-slate-50 border">
-         <div className="mx-auto grid w-full xl:max-w-[80%] border grid-cols-1 gap-4 px-4 py-10 lg:grid-cols-5">
+         <div className="mx-auto grid w-full xl:max-w-[80%] border grid-cols-1 gap-3 px-4 py-10 lg:grid-cols-5">
             <AdTemplate />
 
 
-            <div className="grid grid-cols-3 gap-6 lg:col-span-3">
+            <div className="grid grid-cols-3 gap-3 lg:col-span-3">
                {/* Above spanning across */}
                <div className="col-span-3">
                   {summonerProfileData && (<SummonerProfileBanner summonerProfileData={summonerProfileData} accountData={accountData} mostPlayedCHampion={mostPlayedChampions[0].champion} />)}
@@ -156,11 +156,11 @@ export default async function Page({ params }: PageProps) {
 
 
 
-               <div className="flex flex-col col-span-1 gap-y-4">
+               <div className="flex flex-col col-span-1 gap-y-3">
                   <MostPlayedChampionsColumn mostPlayedChampions={mostPlayedChampions} />
                </div>
 
-               <div className="flex flex-col col-span-2 gap-y-4">
+               <div className="flex flex-col col-span-2 gap-y-3">
                   <MatchHistoryPerformanceCard
                      riotName={riotName}
                      riotTag={riotTag}

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MatchDto } from "@/types/LeagueOfLegends";
 import Image from "next/image";
+import { LOL_RUNES, LolRuneId } from "@/lib/constants/league-of-legends/runes";
 
 interface MatchSummaryCardProps {
    match: MatchDto;
@@ -65,14 +66,18 @@ const SUMMONER_SPELL_LABELS: Record<number, string> = {
    32: "Snowball",
 };
 
-const styleIconFromId = (styleId?: number) => {
-   if (!styleId) return "";
-   return `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/${styleId}.png`;
-};
 
-const runeIconFromId = (perkId?: number) => {
+const getRuneIcon = (perkId?: number): string => {
    if (!perkId) return "";
-   return `https://ddragon.leagueoflegends.com/cdn/img/perk/${perkId}.png`;
+
+   // Convert the number to a string to match the Object keys
+   // and cast it to LolRuneId so TypeScript knows it's a valid key
+   const rune = LOL_RUNES[perkId.toString() as LolRuneId];
+
+   if (!rune) return "";
+
+   const RUNE_BASE_URL = `https://ddragon.leagueoflegends.com/cdn/img/`;
+   return `${RUNE_BASE_URL}${rune.icon}`;
 };
 
 const shortVersion = (gameVersion?: string) => {
@@ -81,7 +86,7 @@ const shortVersion = (gameVersion?: string) => {
    return parts.length >= 2 ? `${parts[0]}.${parts[1]}.1` : gameVersion;
 };
 
-const spellIconFromId = (spellId?: number, version?: string) => {
+const spellIcon = (spellId?: number, version?: string) => {
    if (!spellId) return "";
    const key = SUMMONER_SPELL_MAP[spellId];
    if (!key) return "";
@@ -89,7 +94,7 @@ const spellIconFromId = (spellId?: number, version?: string) => {
    return `https://ddragon.leagueoflegends.com/cdn/${v}/img/spell/${key}.png`;
 };
 
-const spellLabelFromId = (spellId?: number) => {
+const spellLabel = (spellId?: number) => {
    if (!spellId) return "";
    return SUMMONER_SPELL_LABELS[spellId] || `Spell ${spellId}`;
 };
@@ -105,7 +110,7 @@ interface SpellRuneIconsProps {
    secondaryStyleId?: number;
 }
 
-const SpellRuneIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keystoneId, secondaryStyleId }: SpellRuneIconsProps) => (
+const SpellsAndRunesIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keystoneId, secondaryStyleId }: SpellRuneIconsProps) => (
    <div className="flex items-center gap-1 mt-1">
       {spellD && (
          <Image src={spellD} alt={spellDLabel || "Spell D"} title={spellDLabel} width={20} height={20} className="rounded" />
@@ -114,10 +119,10 @@ const SpellRuneIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keystoneId, 
          <Image src={spellF} alt={spellFLabel || "Spell F"} title={spellFLabel} width={20} height={20} className="rounded" />
       )}
       {keystoneId && (
-         <Image src={runeIconFromId(keystoneId)} alt={`Keystone ${keystoneId}`} title={`Keystone ${keystoneId}`} width={20} height={20} className="rounded-full" />
+         <Image src={getRuneIcon(keystoneId)} alt={`Keystone ${keystoneId}`} title={`Keystone ${keystoneId}`} width={20} height={20} className="rounded-full" />
       )}
       {secondaryStyleId && (
-         <Image src={styleIconFromId(secondaryStyleId)} alt={`Secondary ${secondaryStyleId}`} title={`Secondary ${secondaryStyleId}`} width={20} height={20} className="rounded-full" />
+         <Image src={getRuneIcon(secondaryStyleId)} alt={`Secondary ${secondaryStyleId}`} title={`Secondary ${secondaryStyleId}`} width={20} height={20} className="rounded-full" />
       )}
    </div>
 );
@@ -129,7 +134,7 @@ interface ItemGridProps {
 }
 
 const ItemGrid = ({ itemIds, itemNames, version }: ItemGridProps) => (
-   <div className="flex items-center gap-1 justify-end">
+   <div className="grid grid-cols-4 gap-1 justify-end">
       {itemIds.map((id, idx) => (
          <div
             key={`${id}-${idx}`}
@@ -164,10 +169,10 @@ const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }
       <div className="flex flex-col gap-1">
          {participants.map((p) => {
             const keystone = p.perks?.styles?.[0]?.selections?.[0]?.perk;
-            const spellD = spellIconFromId(p.summoner1Id, version);
-            const spellF = spellIconFromId(p.summoner2Id, version);
-            const spellDLabel = spellLabelFromId(p.summoner1Id);
-            const spellFLabel = spellLabelFromId(p.summoner2Id);
+            const spellD = spellIcon(p.summoner1Id, version);
+            const spellF = spellIcon(p.summoner2Id, version);
+            const spellDLabel = spellLabel(p.summoner1Id);
+            const spellFLabel = spellLabel(p.summoner2Id);
             const dmg = p.totalDamageDealtToChampions || 0;
             const width = `${Math.round((dmg / maxDamage) * 100)}%`;
 
@@ -189,7 +194,8 @@ const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }
                   <div className="flex items-center gap-2">
                      {spellD && <Image src={spellD} alt={spellDLabel} title={spellDLabel} width={18} height={18} className="rounded" />}
                      {spellF && <Image src={spellF} alt={spellFLabel} title={spellFLabel} width={18} height={18} className="rounded" />}
-                     {keystone && <Image src={runeIconFromId(keystone)} alt={`Rune ${keystone}`} title={`Rune ${keystone}`} width={18} height={18} className="rounded-full" />}
+                     {/* TODO get the rune itself */}
+                     {keystone && <Image src={getRuneIcon(keystone)} alt={`Rune ${keystone}`} title={`Rune ${keystone}`} width={18} height={18} className="rounded-full" />}
                      <div className="flex-1 h-2 bg-black/10 rounded overflow-hidden">
                         <div className={`h-full ${barColorClass}`} style={{ width }} />
                      </div>
@@ -291,10 +297,10 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    const keystoneId = participant.perks?.styles?.[0]?.selections?.[0]?.perk;
    const secondaryStyleId = participant.perks?.styles?.[1]?.style;
 
-   const spellD = spellIconFromId(participant.summoner1Id, version);
-   const spellF = spellIconFromId(participant.summoner2Id, version);
-   const spellDLabel = spellLabelFromId(participant.summoner1Id);
-   const spellFLabel = spellLabelFromId(participant.summoner2Id);
+   const spellD = spellIcon(participant.summoner1Id, version);
+   const spellF = spellIcon(participant.summoner2Id, version);
+   const spellDLabel = spellLabel(participant.summoner1Id);
+   const spellFLabel = spellLabel(participant.summoner2Id);
 
    // Load item names for tooltips using DDragon per-version item dataset
    useEffect(() => {
@@ -350,7 +356,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
             </div>
          </div>
 
-         <div className="grid grid-cols-[auto,1fr,auto,auto] gap-3 items-center">
+         <div className="grid grid-cols-7 gap-3 items-center border">
             {/* Champion + level */}
             <div className="flex items-center gap-3 min-w-[170px]">
                <div className="relative h-14 w-14 overflow-hidden rounded-xl ring-2 ring-black/10">
@@ -368,7 +374,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
                   <span className="text-sm font-semibold">{championName}</span>
                   <span className="text-[11px] text-muted-foreground">K/D/A {kda}</span>
                   <span className="text-[11px] text-muted-foreground">KP {kp}</span>
-                  <SpellRuneIcons
+                  <SpellsAndRunesIcons
                      spellD={spellD}
                      spellF={spellF}
                      spellDLabel={spellDLabel}
@@ -391,17 +397,22 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
                <span className="text-[11px] text-muted-foreground">{csPerMin}/m</span>
             </div>
 
+            <div className="col-span-2">
+               <CompactLobby
+                  blueSide={blueSide}
+                  redSide={redSide}
+                  version={version}
+                  highlightPuuid={participant.puuid}
+               />
+            </div>
+
             {/* Items row */}
-            <ItemGrid itemIds={itemIds} itemNames={itemNames} version={version} />
+            <div className="col-span-2">
+               <ItemGrid itemIds={itemIds} itemNames={itemNames} version={version} />
+            </div>
+
+
          </div>
-
-         <CompactLobby
-            blueSide={blueSide}
-            redSide={redSide}
-            version={version}
-            highlightPuuid={participant.puuid}
-         />
-
          {expanded && (
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
                <RosterColumn
