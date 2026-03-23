@@ -3,14 +3,92 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ChevronDown, Divide } from "lucide-react";
 import { MatchDto, Participant } from "@/types/LeagueOfLegends";
 import Image from "next/image";
 import { getRuneData, getRuneIconUrl, itemIdsFromParticipant, spellIcon, spellLabel } from "@/utils/league-of-legends/mappers";
 import { formatGameStartDate, formatMatchDuration, getDDragonVersion } from "@/utils/formatters";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+   return twMerge(clsx(inputs));
+}
 
 
-const ChampionIcon = ({ championName, version }: { championName: string; version: string }) => (
-   <div className="h-12 w-12">
+const MatchMetaData = ({ isWin, gameMode, duration, endedAt, className }: { isWin: boolean; gameMode: string; duration: string; endedAt?: string; className?: string }) => (
+   <div className={cn("flex flex-col items-left gap-2", className)}>
+      <span>{gameMode}</span>
+      <span>{endedAt}</span>
+      <span>{isWin ? "Victory" : "Defeat"}</span>
+      <span>{duration}</span>
+   </div>
+);
+
+
+const SummonerLoadout = ({ championName, version, spellD, spellF, spellDLabel, spellFLabel, keystoneId, secondaryStyleId, champLevel, className }: {
+   championName: string;
+   version: string;
+   spellD?: string;
+   spellF?: string;
+   spellDLabel?: string;
+   spellFLabel?: string;
+   keystoneId?: number;
+   secondaryStyleId?: number;
+   champLevel: number;
+   className?: string;
+}) => (
+   <div className={cn("flex items-center", className)}>
+      <div className="relative ">
+         <ChampionIcon championName={championName} version={version} />
+         <span className="absolute bottom-0 right-0 bg-black/70 text-white text-[10px] px-1 rounded-tl">
+            {champLevel}
+         </span>
+      </div>
+      <SpellsAndRunesIcons
+         spellD={spellD}
+         spellF={spellF}
+         spellDLabel={spellDLabel}
+         spellFLabel={spellFLabel}
+         keystoneId={keystoneId}
+         secondaryStyleId={secondaryStyleId}
+      />
+   </div>
+);
+
+
+const PerformanceSection = ({
+   kills, deaths, assists, minionScore, visionScore,
+   gameDuration: gameDurationInSeconds,
+   className
+}: {
+   kills: number; deaths: number; assists: number;
+   minionScore: number; visionScore: number;
+   gameDuration: number;
+   className?: string;
+}) => (
+   <div className={cn("flex flex-col items-center justify-center", className)}>
+      <span className="text-lg font-bold leading-tight">{kills}/{deaths}/{assists}</span>
+      <span className="text-[11px] text-muted-foreground">{((kills + assists) / Math.max(1, deaths)).toFixed(2)}:1 KDA</span>
+      <span className="text-[11px] text-muted-foreground">{minionScore} ({((minionScore) / (gameDurationInSeconds / 60)).toFixed(1)})</span>
+      <span className="text-[11px] text-muted-foreground">{visionScore} vision</span>
+   </div>
+);
+
+
+const ExpandMatchButton = ({ expanded, onClick, className }: { expanded: boolean; onClick: () => void; className?: string }) => (
+   <div className={cn("h-full flex flex-col justify-end", className)}>
+      <button
+         className="text-[11px] font-semibold underline-offset-2 hover:underline self-stretch border-red-500"
+         onClick={onClick}
+      >
+         {expanded ? <ChevronDown className="h-5 w-5 rotate-180" /> : <ChevronDown className="h-5 w-5" />}
+      </button>
+   </div>
+);
+
+const ChampionIcon = ({ championName, version, className }: { championName: string; version: string; className?: string }) => (
+   <div className={cn("h-12 w-12", className)}>
       <Image
          src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`}
          alt={championName}
@@ -21,6 +99,7 @@ const ChampionIcon = ({ championName, version }: { championName: string; version
    </div>
 );
 
+
 interface SpellRuneIconsProps {
    spellD?: string;
    spellF?: string;
@@ -28,9 +107,10 @@ interface SpellRuneIconsProps {
    spellFLabel?: string;
    keystoneId?: number;
    secondaryStyleId?: number;
+   className?: string;
 }
-const SpellsAndRunesIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keystoneId, secondaryStyleId }: SpellRuneIconsProps) => (
-   <div className="grid grid-cols-2 gap-1 content-center h-14">
+const SpellsAndRunesIcons = ({ spellD, spellF, spellDLabel, spellFLabel, keystoneId, secondaryStyleId, className }: SpellRuneIconsProps) => (
+   <div className={cn("grid grid-cols-2 gap-1 content-center h-14", className)}>
       {spellD && (
          <Image src={spellD} alt={spellDLabel || "Spell D"} title={spellDLabel} width={20} height={20} className="rounded" />
       )}
@@ -51,9 +131,10 @@ interface ItemGridProps {
    itemIds: number[];
    itemNames: Record<number, string>;
    version: string;
+   className?: string;
 }
-const ItemGrid = ({ itemIds, itemNames, version }: ItemGridProps) => (
-   <div className="grid grid-cols-4 gap-1 justify-end">
+const ItemGrid = ({ itemIds, itemNames, version, className }: ItemGridProps) => (
+   <div className={cn("grid grid-cols-4 gap-1", className)}>
       {itemIds.map((id, idx) => (
          <div
             key={`${id}-${idx}`}
@@ -81,9 +162,10 @@ interface RosterColumnProps {
    version: string;
    maxDamage: number;
    barColorClass: string;
+   className?: string;
 }
-const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }: RosterColumnProps) => (
-   <div className="flex flex-col gap-1">
+const RosterColumn = ({ title, participants, version, maxDamage, barColorClass, className }: RosterColumnProps) => (
+   <div className={cn("flex flex-col gap-1", className)}>
       <span className="text-[11px] font-semibold uppercase text-muted-foreground">{title}</span>
       <div className="flex flex-col gap-1">
          {participants.map((p) => {
@@ -129,17 +211,18 @@ const RosterColumn = ({ title, participants, version, maxDamage, barColorClass }
 );
 
 
-interface CompactLobbyProps {
+interface ParticipantListProps {
    blueSide: Participant[];
    redSide: Participant[];
    version: string;
    highlightPuuid: string;
+   className?: string;
 }
-const CompactLobby = ({ blueSide, redSide, version, highlightPuuid }: CompactLobbyProps) => {
+const ParticipantList = ({ blueSide, redSide, version, highlightPuuid, className }: ParticipantListProps) => {
    const renderChip = (p: Participant, isSelf: boolean) => (
       <div
          key={p.puuid}
-         className={`flex items-center gap-1 px-1 py-[2px] rounded bg-black/5 ${isSelf ? "ring-1 ring-blue-400/70" : ""}`}
+         className={cn(`flex items-center gap-1 px-1 py-[2px] rounded bg-black/5`, className)}
          title={p.riotIdGameName || p.summonerName}
       >
          <div className={`relative h-5 w-5 overflow-hidden rounded ${isSelf ? "ring-2 ring-blue-400/70" : "ring-1 ring-black/10"}`}>
@@ -189,6 +272,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    const kills = participant.kills;
    const deaths = participant.deaths;
    const assists = participant.assists;
+   const visionScore = participant.visionScore || 0;
    const kda = `${kills} / ${deaths} / ${assists}`;
    const ratio = ((kills + assists) / Math.max(1, deaths)).toFixed(2);
 
@@ -265,89 +349,63 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    return (
       <Card className={`flex flex-col gap-2 p-3 border ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
 
-         <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <div className="flex items-center gap-2">
-               <span className={`font-semibold uppercase ${accentColor}`}>{isWin ? "Victory" : "Defeat"}</span>
-               <span>• {gameMode}</span>
-               <span>• {duration}</span>
-               {endedAt && <span>• {endedAt}</span>}
-            </div>
-            <div className="flex items-center gap-2">
-               <Badge variant="secondary" className="h-5 px-2 text-[10px]">Match #{match.metadata?.matchId ?? "?"}</Badge>
-               <button
-                  className="text-[11px] font-semibold underline-offset-2 hover:underline"
-                  onClick={() => setExpanded((prev) => !prev)}
-               >
-                  {expanded ? "Hide details" : "Show details"}
-               </button>
-            </div>
-         </div>
+         <div className="flex">
+            <div className="grid grid-cols-10 gap-3 items-center border">
 
-         <div className="grid grid-cols-7 gap-3 items-center border">
-            {/* Champion + level */}
-            <div className="flex items-center">
-               <div className="relative ">
-                  <ChampionIcon championName={championName} version={version} />
-                  <span className="absolute bottom-0 right-0 bg-black/70 text-white text-[10px] px-1 rounded-tl">
-                     {participant.champLevel}
-                  </span>
-               </div>
-               <SpellsAndRunesIcons
+               <MatchMetaData className="grid-cols-1" isWin={isWin} gameMode={gameMode} duration={duration} endedAt={endedAt} />
+
+               <SummonerLoadout
+                  className="col-span-2"
+                  championName={championName}
+                  version={version}
                   spellD={spellD}
                   spellF={spellF}
                   spellDLabel={spellDLabel}
                   spellFLabel={spellFLabel}
                   keystoneId={keystoneId}
                   secondaryStyleId={secondaryStyleId}
+                  champLevel={participant.champLevel}
                />
-            </div>
 
-            {/* KDA block */}
-            <div className="flex flex-col items-center justify-center">
-               <span className="text-lg font-bold leading-tight">{kda}</span>
-               <span className="text-[11px] text-muted-foreground">{ratio}:1 KDA</span>
-            </div>
 
-            {/* CS & vision-like */}
-            <div className="flex flex-col items-center justify-center px-2">
-               <span className="text-sm font-semibold">CS {totalCs}</span>
-               <span className="text-[11px] text-muted-foreground">{csPerMin}/m</span>
-            </div>
+               <PerformanceSection kills={kills} deaths={deaths} assists={assists} minionScore={totalCs} gameDuration={durationSeconds} visionScore={visionScore} />
 
-            <div className="col-span-2">
-               <CompactLobby
+               <ItemGrid className="col-span-3" itemIds={itemIds} itemNames={itemNames} version={version} />
+
+               <ParticipantList
+                  className="col-span-3 border"
                   blueSide={blueSide}
                   redSide={redSide}
                   version={version}
                   highlightPuuid={participant.puuid}
                />
+
+
+
             </div>
-
-            {/* Items row */}
-            <div className="col-span-2">
-               <ItemGrid itemIds={itemIds} itemNames={itemNames} version={version} />
-            </div>
-
-
+            <ExpandMatchButton expanded={expanded} onClick={() => setExpanded((prev) => !prev)} />
          </div>
-         {expanded && (
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
-               <RosterColumn
-                  title="Allies"
-                  participants={teammates}
-                  version={version}
-                  maxDamage={allyMaxDamage}
-                  barColorClass="bg-blue-500/60"
-               />
-               <RosterColumn
-                  title="Opponents"
-                  participants={opponents}
-                  version={version}
-                  maxDamage={enemyMaxDamage}
-                  barColorClass="bg-red-500/60"
-               />
-            </div>
-         )}
-      </Card>
+
+         {
+            expanded && (
+               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-black/5">
+                  <RosterColumn
+                     title="Allies"
+                     participants={teammates}
+                     version={version}
+                     maxDamage={allyMaxDamage}
+                     barColorClass="bg-blue-500/60"
+                  />
+                  <RosterColumn
+                     title="Opponents"
+                     participants={opponents}
+                     version={version}
+                     maxDamage={enemyMaxDamage}
+                     barColorClass="bg-red-500/60"
+                  />
+               </div>
+            )
+         }
+      </Card >
    );
 }
