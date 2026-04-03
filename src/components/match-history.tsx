@@ -70,7 +70,7 @@ const PerformanceSection = ({
    <div className={cn("flex flex-col items-center justify-center", className)}>
       <span className="text-lg font-bold leading-tight">{kills}/{deaths}/{assists}</span>
       <span className="text-[11px] text-muted-foreground">{((kills + assists) / Math.max(1, deaths)).toFixed(2)}:1 KDA</span>
-      <span className="text-[11px] text-muted-foreground">{minionScore} ({((minionScore) / (gameDurationInSeconds / 60)).toFixed(1)})</span>
+      <span className="text-[11px] text-muted-foreground">{minionScore} cs ({((minionScore) / (gameDurationInSeconds / 60)).toFixed(1)})</span>
       <span className="text-[11px] text-muted-foreground">{visionScore} vision</span>
    </div>
 );
@@ -134,7 +134,7 @@ interface ItemGridProps {
    className?: string;
 }
 const ItemGrid = ({ itemIds, itemNames, version, className }: ItemGridProps) => (
-   <div className={cn("grid grid-cols-4 gap-1", className)}>
+   <div className={cn("grid grid-cols-4 grid-rows-2 gap-[4px] w-fit", className)}>
       {itemIds.map((id, idx) => (
          <div
             key={`${id}-${idx}`}
@@ -222,7 +222,7 @@ const ParticipantList = ({ blueSide, redSide, version, highlightPuuid, className
    const renderChip = (p: Participant, isSelf: boolean) => (
       <div
          key={p.puuid}
-         className={cn(`flex items-center gap-1 px-1 py-[2px] rounded bg-black/5`, className)}
+         className={cn(`flex items-center gap-1  bg-black/5`, className)}
          title={p.riotIdGameName || p.summonerName}
       >
          <div className={`relative h-5 w-5 overflow-hidden rounded ${isSelf ? "ring-2 ring-blue-400/70" : "ring-1 ring-black/10"}`}>
@@ -239,17 +239,22 @@ const ParticipantList = ({ blueSide, redSide, version, highlightPuuid, className
    );
 
    return (
-      <div className="rounded-md border border-black/5 overflow-hidden text-[11px]">
-         <div className="flex">
-            <div className="flex-1 bg-blue-500/5 px-2 py-1 flex items-center gap-2 flex-wrap">
-               <span className="text-[10px] font-semibold uppercase text-blue-600">Blue side</span>
+      <div className={cn(`rounded-md border border-black/5 overflow-hidden text-[11px] w-full`, className)}>
+         {/* Use grid-cols-2 to force a perfect 50/50 split */}
+         <div className="grid grid-cols-2 divide-x divide-black/10">
+
+            {/* Blue Side */}
+            <div className="bg-blue-500/5 px-2 py-1 flex flex-col gap-1">
+               <span className="text-[9px] font-bold uppercase text-blue-600 mb-1">Blue side</span>
                {blueSide.map((p) => renderChip(p, p.puuid === highlightPuuid))}
             </div>
-            <div className="w-px bg-black/10" />
-            <div className="flex-1 bg-red-500/5 px-2 py-1 flex items-center gap-2 flex-wrap justify-end">
+
+            {/* Red Side */}
+            <div className="grid grid-cols-2 divide-x divide-black/10">
+               <span className="text-[9px] font-bold uppercase text-red-600 mb-1 text-right">Red side</span>
                {redSide.map((p) => renderChip(p, p.puuid === highlightPuuid))}
-               <span className="text-[10px] font-semibold uppercase text-red-600">Red side</span>
             </div>
+
          </div>
       </div>
    );
@@ -347,12 +352,18 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    );
 
    return (
-      <Card className={`flex flex-col gap-2 p-3 border ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
+      <Card className={`flex flex-col gap-2 p-3 ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
 
          <div className="flex">
-            <div className="grid grid-cols-10 gap-3 items-center border">
+            <div className="grid grid-cols-10 gap-3 items-center [&>*]:outline [&>*]:outline-1 [&>*]:outline-red-500/40">
 
-               <MatchMetaData className="grid-cols-1" isWin={isWin} gameMode={gameMode} duration={duration} endedAt={endedAt} />
+               <MatchMetaData
+                  className="grid-cols-1"
+                  isWin={isWin}
+                  gameMode={gameMode}
+                  duration={duration}
+                  endedAt={endedAt}
+               />
 
                <SummonerLoadout
                   className="col-span-2"
@@ -368,9 +379,21 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
                />
 
 
-               <PerformanceSection kills={kills} deaths={deaths} assists={assists} minionScore={totalCs} gameDuration={durationSeconds} visionScore={visionScore} />
+               <PerformanceSection
+                  kills={kills}
+                  deaths={deaths}
+                  assists={assists}
+                  minionScore={totalCs}
+                  gameDuration={durationSeconds}
+                  visionScore={visionScore}
+               />
 
-               <ItemGrid className="col-span-3" itemIds={itemIds} itemNames={itemNames} version={version} />
+               <ItemGrid
+                  className="col-span-3"
+                  itemIds={itemIds}
+                  itemNames={itemNames}
+                  version={version}
+               />
 
                <ParticipantList
                   className="col-span-3 border"

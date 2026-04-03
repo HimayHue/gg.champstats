@@ -13,6 +13,11 @@ interface TopChampionsCardProps {
       winRate: number;
    }[];
 }
+/**
+ * A card component that displays the most played champions for a summoner, including the champion icon, name, number of games played, and win rate. If no champion data is available, it shows a message indicating that.
+ * @param param0 
+ * @returns 
+ */
 export function MostPlayedChampionsColumn({ mostPlayedChampions }: TopChampionsCardProps) {
    return (
       <Card className="bg-slate-900/50 ring-foreground/5">
@@ -54,6 +59,11 @@ interface ProfileSummaryCardProps {
    accountData: AccountInformation | null;
    mostPlayedCHampion: string;
 }
+/**
+ * A profile summary card component that displays the summoner's profile icon, level, Riot name, and tag. It also includes a background image based on the most played champion. If the profile data is still loading, it shows a loading message.
+ * @param param0 
+ * @returns 
+ */
 export function SummonerProfileBanner({ summonerProfileData: profileData, accountData, mostPlayedCHampion }: ProfileSummaryCardProps) {
 
    if (!profileData || !accountData) {
@@ -112,6 +122,12 @@ export function SummonerProfileBanner({ summonerProfileData: profileData, accoun
 }
 
 
+/**
+ * A component that renders a list of match summary cards for a summoner's match history. It takes in the match history data and account information as props and maps over the match history data to create individual MatchSummaryCard components for each match. 
+ * If there is no match history data, it will simply render nothing.
+ * @param param0 
+ * @returns 
+ */
 export function MatchHistoryColumn({ matchHistoryData, accountData }: { matchHistoryData: MatchDto[]; accountData: AccountInformation }) {
    return (
       <>
@@ -124,6 +140,12 @@ export function MatchHistoryColumn({ matchHistoryData, accountData }: { matchHis
 }
 
 
+/**
+ * A performance summary card component that displays a summoner's match history performance, including their Riot name and tag, number of games played, win rate, average KDA, average CS per minute, and average game duration. 
+ * If there is no match history data available, it shows a message indicating that.
+ * @param param0 
+ * @returns 
+ */
 export function MatchHistoryPerformanceCard(
    { riotName, riotTag, gamesPlayed, winRate, avgKda, avgCsPerMin, avgDuration, playerTotals, recentGamesCount }:
       { riotName: string; riotTag: string; gamesPlayed: number; winRate: number; avgKda: string; avgCsPerMin: string; avgDuration: string; recentGamesCount?: number; playerTotals: { wins: number; kills: number; deaths: number; assists: number; cs: number } }) {
