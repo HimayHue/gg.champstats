@@ -55,11 +55,12 @@ export function toTitleCase(value: string): string {
       .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-
 export const formatMatchDuration = (seconds: number): string => {
    const mins = Math.floor(seconds / 60);
-   const secs = Math.max(0, seconds % 60);
-   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+   const secs = Math.floor(Math.max(0, seconds % 60));
+
+   // Remove .toString().padStart(2, "0")
+   return `${mins}m ${secs}s`;
 };
 
 /**

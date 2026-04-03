@@ -10,6 +10,7 @@ import { getRuneData, getRuneIconUrl, itemIdsFromParticipant, spellIcon, spellLa
 import { formatGameStartDate, formatMatchDuration, getDDragonVersion } from "@/utils/formatters";
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import Link from "next/link";
 
 function cn(...inputs: ClassValue[]) {
    return twMerge(clsx(inputs));
@@ -219,40 +220,43 @@ interface ParticipantListProps {
    className?: string;
 }
 const ParticipantList = ({ blueSide, redSide, version, highlightPuuid, className }: ParticipantListProps) => {
-   const renderChip = (p: Participant, isSelf: boolean) => (
-      <div
-         key={p.puuid}
-         className={cn(`flex items-center gap-1  bg-black/5`, className)}
-         title={p.riotIdGameName || p.summonerName}
-      >
-         <div className={`relative h-5 w-5 overflow-hidden rounded ${isSelf ? "ring-2 ring-blue-400/70" : "ring-1 ring-black/10"}`}>
-            <Image
-               src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${p.championName}.png`}
-               alt={p.championName}
-               fill
-               className="object-cover"
-               sizes="40px"
-            />
-         </div>
-         <span className="max-w-[80px] truncate text-[10px] text-muted-foreground leading-none">{p.riotIdGameName || p.summonerName}</span>
-      </div>
-   );
+
+   const participantRow = (participant: Participant, isSelf: boolean) => {
+      const participantProfileLink = `/lol/na/${encodeURIComponent(participant.riotIdGameName)}-${participant.riotIdTagline}`;
+
+      return (
+         <Link
+            href={participantProfileLink}
+            key={participant.puuid}
+            className="group flex items-center gap-1 hover:bg-black/10 hover:cursor-pointer transition-colors"
+            title={participant.riotIdGameName || participant.summonerName}
+         >
+            <div className={`relative h-5 w-5 overflow-hidden rounded ${isSelf ? "ring-2 ring-blue-400/70" : "ring-1 ring-black/10"}`}>
+               <Image
+                  src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${participant.championName}.png`}
+                  alt={participant.championName}
+                  fill
+                  className="object-cover"
+                  sizes="40px"
+               />
+            </div>
+            <span className="max-w-[80px] truncate text-[10px] text-muted-foreground leading-none group-hover:text-white transition-colors">
+               {participant.riotIdGameName || participant.summonerName}
+            </span>
+         </Link>
+      );
+   };
 
    return (
       <div className={cn(`rounded-md border border-black/5 overflow-hidden text-[11px] w-full`, className)}>
-         {/* Use grid-cols-2 to force a perfect 50/50 split */}
-         <div className="grid grid-cols-2 divide-x divide-black/10">
+         <div className="grid grid-cols-2 ">
 
-            {/* Blue Side */}
-            <div className="bg-blue-500/5 px-2 py-1 flex flex-col gap-1">
-               <span className="text-[9px] font-bold uppercase text-blue-600 mb-1">Blue side</span>
-               {blueSide.map((p) => renderChip(p, p.puuid === highlightPuuid))}
+            <div className="px-2 py-1 flex flex-col gap-1">
+               {blueSide.map((p) => participantRow(p, p.puuid === highlightPuuid))}
             </div>
 
-            {/* Red Side */}
-            <div className="grid grid-cols-2 divide-x divide-black/10">
-               <span className="text-[9px] font-bold uppercase text-red-600 mb-1 text-right">Red side</span>
-               {redSide.map((p) => renderChip(p, p.puuid === highlightPuuid))}
+            <div className="px-2 py-1 flex flex-col gap-1">
+               {redSide.map((p) => participantRow(p, p.puuid === highlightPuuid))}
             </div>
 
          </div>
@@ -272,21 +276,20 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
 
    if (!participant) return null;
 
+   // Extract relevant data for the participant
    const isWin = Boolean(participant.win);
    const championName = participant.championName;
    const kills = participant.kills;
    const deaths = participant.deaths;
    const assists = participant.assists;
    const visionScore = participant.visionScore || 0;
-   const kda = `${kills} / ${deaths} / ${assists}`;
-   const ratio = ((kills + assists) / Math.max(1, deaths)).toFixed(2);
 
+   // Format match duration and end time
    const durationSeconds = match.info.gameDuration ?? participant.timePlayed ?? 0;
    const duration = formatMatchDuration(durationSeconds);
    const endedAt = formatGameStartDate(match.info.gameStartTimestamp);
 
    const totalCs = participant.totalMinionsKilled + participant.neutralMinionsKilled;
-   const csPerMin = durationSeconds > 0 ? (totalCs / (durationSeconds / 60)).toFixed(1) : "0";
 
    const gameMode = match.info.gameMode || (match.info.queueId ? `Queue ${match.info.queueId}` : "Unknown mode");
 
@@ -295,13 +298,14 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
       .reduce((sum, p) => sum + p.kills, 0);
    const kp = ((kills + assists) / Math.max(1, teamKills)).toFixed(2);
 
+   // Get teammates and opponents for the expanded roster view
    const teammates = match.info.participants.filter((p) => p.teamId === participant.teamId);
    const opponents = match.info.participants.filter((p) => p.teamId !== participant.teamId);
    const blueSide = match.info.participants.filter((p) => p.teamId === 100);
    const redSide = match.info.participants.filter((p) => p.teamId === 200);
 
+   // Determine status color and background tint based on win or loss
    const statusColor = isWin ? "bg-blue-500/10 border-blue-500/50" : "bg-red-500/10 border-red-500/50";
-   const accentColor = isWin ? "text-blue-600" : "text-red-600";
    const bgTint = isWin ? "bg-blue-500/5" : "bg-red-500/5";
 
    // Items in the same order u.gg shows (6 slots + ward)
@@ -312,6 +316,7 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
    const keystoneId = participant.perks?.styles?.[0]?.selections?.[0]?.perk;
    const secondaryStyleId = participant.perks?.styles?.[1]?.style;
 
+   // Get spell icons and labels for the participant's summoner spells
    const spellD = spellIcon(participant.summoner1Id, version);
    const spellF = spellIcon(participant.summoner2Id, version);
    const spellDLabel = spellLabel(participant.summoner1Id);
@@ -355,10 +360,8 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
       <Card className={`flex flex-col gap-2 p-3 ${statusColor} ${bgTint} transition-all hover:brightness-110`}>
 
          <div className="flex">
-            <div className="grid grid-cols-10 gap-3 items-center [&>*]:outline [&>*]:outline-1 [&>*]:outline-red-500/40">
-
+            <div className="grid grid-cols-[12%_14%_12%_20%_1fr] gap-1 items-center w-full">
                <MatchMetaData
-                  className="grid-cols-1"
                   isWin={isWin}
                   gameMode={gameMode}
                   duration={duration}
@@ -366,7 +369,6 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
                />
 
                <SummonerLoadout
-                  className="col-span-2"
                   championName={championName}
                   version={version}
                   spellD={spellD}
@@ -389,14 +391,12 @@ export function MatchSummaryCard({ match, puuid }: MatchSummaryCardProps) {
                />
 
                <ItemGrid
-                  className="col-span-3"
                   itemIds={itemIds}
                   itemNames={itemNames}
                   version={version}
                />
 
                <ParticipantList
-                  className="col-span-3 border"
                   blueSide={blueSide}
                   redSide={redSide}
                   version={version}

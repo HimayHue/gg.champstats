@@ -133,7 +133,7 @@ export default async function Page({ params }: PageProps) {
    const winRate = gamesPlayed ? Math.round((playerTotals.wins / gamesPlayed) * 100) : 0;
    const avgKda = gamesPlayed ? ((playerTotals.kills + playerTotals.assists) / Math.max(1, playerTotals.deaths)).toFixed(2) : "0.00";
    const avgCsPerMin = gamesPlayed ? (playerTotals.cs / Math.max(1, playerTotals.timePlayed / 60)).toFixed(1) : "0.0";
-   const avgDuration = gamesPlayed ? formatMatchDuration(playerTotals.timePlayed / gamesPlayed) : "0m 00s";
+   const avgGameDuration = gamesPlayed ? formatMatchDuration(playerTotals.timePlayed / gamesPlayed) : "0m 00s";
    const avgGoldPerMin = gamesPlayed ? ((playerTotals.kills * 300 + playerTotals.assists * 150) / Math.max(1, playerTotals.timePlayed / 60)).toFixed(1) : "0.0";
 
    const mostPlayedChampions = Array.from(
@@ -182,7 +182,7 @@ export default async function Page({ params }: PageProps) {
                      winRate={winRate}
                      avgKda={avgKda}
                      avgCsPerMin={avgCsPerMin}
-                     avgDuration={avgDuration}
+                     avgGameDuration={avgGameDuration}
                      playerTotals={playerTotals}
                      recentGamesCount={matchHistoryData.length}
                   />
