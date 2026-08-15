@@ -1,6 +1,6 @@
 /**
  * AUTO-GENERATED FILE FROM `scripts/update-league-of-legends-runes.ts` - DO NOT EDIT MANUALLY
- * Generated from Riot Data Dragon v16.6.1 on 6/5/2026, 4:54:59 PM Arizona Time
+ * Generated from Riot Data Dragon v16.6.1 on 8/14/2026, 9:05:57 PM Arizona Time
  * This file provides an O(1) lookup for runes by their ID, including both rune trees and individual runes.
  * Each entry includes the rune's name, icon, and parent tree information (for individual runes).
  */

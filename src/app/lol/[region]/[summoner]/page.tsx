@@ -158,7 +158,7 @@ export default async function Page({ params }: PageProps) {
 
    return (
       <main className="min-h-screen bg-slate-950 text-slate-50 border">
-         <div className="mx-auto grid w-full xl:max-w-[80%] border grid-cols-1 gap-3 px-4 py-10 lg:grid-cols-5">
+         <div className="mx-auto grid w-full xl:max-w-[100%] border grid-cols-1 gap-3 px-4 py-10 lg:grid-cols-5">
             <AdTemplate />
 
 

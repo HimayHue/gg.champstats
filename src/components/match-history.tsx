@@ -89,7 +89,7 @@ const ExpandMatchButton = ({ expanded, onClick, className }: { expanded: boolean
 );
 
 const ChampionIcon = ({ championName, version, className }: { championName: string; version: string; className?: string }) => (
-   <div className={cn("h-12 w-12", className)}>
+   <div className={cn("relative h-12 w-12", className)}>
       <Image
          src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`}
          alt={championName}

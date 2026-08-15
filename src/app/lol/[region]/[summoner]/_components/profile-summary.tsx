@@ -13,6 +13,8 @@ interface TopChampionsCardProps {
       winRate: number;
    }[];
 }
+
+
 /**
  * A card component that displays the most played champions for a summoner, including the champion icon, name, number of games played, and win rate. If no champion data is available, it shows a message indicating that.
  */
@@ -57,6 +59,8 @@ interface ProfileSummaryCardProps {
    accountData: AccountInformation | null;
    mostPlayedCHampion: string;
 }
+
+
 /**
  * A profile summary card component that displays the summoner's profile icon, level, Riot name, and tag. It also includes a background image based on the most played champion. If the profile data is still loading, it shows a loading message.
  */
@@ -116,6 +120,7 @@ export function SummonerProfileBanner({ summonerProfileData: profileData, accoun
       </Card>
    )
 }
+
 
 
 /**
@@ -180,6 +185,11 @@ export function MatchHistoryPerformanceCard(
    );
 }
 
+
+/**
+ * A component that renders a single statistic tile with a label, value, and optional hint.
+ * example: "Win rate: 55% (11W / 9L)"
+ */
 function StatTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
    return (
       <div className="rounded-xl bg-slate-900/40 px-4 py-3 ring-1 ring-white/5">
